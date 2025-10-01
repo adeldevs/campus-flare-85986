@@ -169,6 +169,7 @@ const AdminDashboard = () => {
               events={events} 
               onUpdate={fetchEvents}
               isUltimateAdmin={isUltimateAdmin}
+              currentUserId={userProfile?.uid}
             />
           </TabsContent>
 

@@ -18,15 +18,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import EditEventDialog from './EditEventDialog';
 
 interface EventsManagerProps {
   events: Event[];
   onUpdate: () => void;
   isUltimateAdmin: boolean;
+  currentUserId?: string;
 }
 
-const EventsManager: React.FC<EventsManagerProps> = ({ events, onUpdate, isUltimateAdmin }) => {
+const EventsManager: React.FC<EventsManagerProps> = ({ events, onUpdate, isUltimateAdmin, currentUserId }) => {
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
 
   const handleToggleStatus = async (event: Event) => {
     try {
@@ -112,33 +115,42 @@ const EventsManager: React.FC<EventsManagerProps> = ({ events, onUpdate, isUltim
               </div>
             </div>
 
-            <div className="flex gap-2">
-              <Button 
-                onClick={() => handleToggleStatus(event)}
-                variant="outline"
-                size="sm"
-                className="flex-1"
-              >
-                {event.status === 'published' ? (
-                  <>
-                    <EyeOff className="mr-2 h-4 w-4" />
-                    Unpublish
-                  </>
-                ) : (
-                  <>
-                    <Eye className="mr-2 h-4 w-4" />
-                    Publish
-                  </>
-                )}
-              </Button>
-              <Button 
-                onClick={() => setDeletingId(event.id)}
-                variant="outline"
-                size="sm"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
+            {(isUltimateAdmin || event.createdBy === currentUserId) && (
+              <div className="flex gap-2">
+                <Button 
+                  onClick={() => handleToggleStatus(event)}
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                >
+                  {event.status === 'published' ? (
+                    <>
+                      <EyeOff className="mr-2 h-4 w-4" />
+                      Unpublish
+                    </>
+                  ) : (
+                    <>
+                      <Eye className="mr-2 h-4 w-4" />
+                      Publish
+                    </>
+                  )}
+                </Button>
+                <Button 
+                  onClick={() => setEditingEvent(event)}
+                  variant="outline"
+                  size="sm"
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
+                <Button 
+                  onClick={() => setDeletingId(event.id)}
+                  variant="outline"
+                  size="sm"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
       ))}
@@ -160,6 +172,13 @@ const EventsManager: React.FC<EventsManagerProps> = ({ events, onUpdate, isUltim
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <EditEventDialog
+        open={editingEvent !== null}
+        onOpenChange={(open) => !open && setEditingEvent(null)}
+        onSuccess={onUpdate}
+        event={editingEvent}
+      />
     </div>
   );
 };
