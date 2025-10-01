@@ -31,8 +31,27 @@ export interface Event {
   date: Date;
   time: string;
   location: string;
+  mapLink?: string;
   bannerURL: string;
   category: EventCategory;
+  categories?: string[];
+  customCategory?: string;
+  entryFee: {
+    isFree: boolean;
+    amount?: number;
+  };
+  prizeAmount?: number;
+  contactInfo?: {
+    email?: string;
+    phone?: string;
+  };
+  externalRegistrationLink?: string;
+  mediaLinks?: {
+    instagram?: string;
+    facebook?: string;
+    youtube?: string;
+  };
+  howToRegisterLink?: string;
   createdBy: string;
   createdByName: string;
   status: 'draft' | 'published';

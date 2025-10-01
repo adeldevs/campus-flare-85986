@@ -16,7 +16,9 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
+import { X } from 'lucide-react';
 
 interface CreateEventDialogProps {
   open: boolean;
@@ -35,7 +37,22 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ open, onOpenChang
     date: '',
     time: '',
     location: '',
+    mapLink: '',
     category: 'seminar' as EventCategory,
+    customCategories: [] as string[],
+    customCategoryInput: '',
+    entryFee: {
+      isFree: true,
+      amount: undefined as number | undefined,
+    },
+    prizeAmount: undefined as number | undefined,
+    contactEmail: '',
+    contactPhone: '',
+    externalRegistrationLink: '',
+    instagramLink: '',
+    facebookLink: '',
+    youtubeLink: '',
+    howToRegisterLink: '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -60,7 +77,25 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ open, onOpenChang
         date: new Date(formData.date),
         time: formData.time,
         location: formData.location,
+        mapLink: formData.mapLink || null,
         category: formData.category,
+        categories: formData.customCategories.length > 0 ? formData.customCategories : null,
+        entryFee: {
+          isFree: formData.entryFee.isFree,
+          amount: formData.entryFee.isFree ? null : formData.entryFee.amount,
+        },
+        prizeAmount: formData.prizeAmount || null,
+        contactInfo: {
+          email: formData.contactEmail || null,
+          phone: formData.contactPhone || null,
+        },
+        externalRegistrationLink: formData.externalRegistrationLink || null,
+        mediaLinks: {
+          instagram: formData.instagramLink || null,
+          facebook: formData.facebookLink || null,
+          youtube: formData.youtubeLink || null,
+        },
+        howToRegisterLink: formData.howToRegisterLink || null,
         bannerURL,
         createdBy: currentUser.uid,
         createdByName: userProfile.displayName,
@@ -88,9 +123,41 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ open, onOpenChang
       date: '',
       time: '',
       location: '',
+      mapLink: '',
       category: 'seminar',
+      customCategories: [],
+      customCategoryInput: '',
+      entryFee: {
+        isFree: true,
+        amount: undefined,
+      },
+      prizeAmount: undefined,
+      contactEmail: '',
+      contactPhone: '',
+      externalRegistrationLink: '',
+      instagramLink: '',
+      facebookLink: '',
+      youtubeLink: '',
+      howToRegisterLink: '',
     });
     setBannerFile(null);
+  };
+
+  const addCustomCategory = () => {
+    if (formData.customCategoryInput.trim()) {
+      setFormData({
+        ...formData,
+        customCategories: [...formData.customCategories, formData.customCategoryInput.trim()],
+        customCategoryInput: '',
+      });
+    }
+  };
+
+  const removeCustomCategory = (index: number) => {
+    setFormData({
+      ...formData,
+      customCategories: formData.customCategories.filter((_, i) => i !== index),
+    });
   };
 
   return (
@@ -163,7 +230,18 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ open, onOpenChang
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="category">Category *</Label>
+            <Label htmlFor="mapLink">Google Maps Link</Label>
+            <Input
+              id="mapLink"
+              value={formData.mapLink}
+              onChange={(e) => setFormData({ ...formData, mapLink: e.target.value })}
+              placeholder="https://maps.google.com/..."
+              type="url"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="category">Primary Category *</Label>
             <Select 
               value={formData.category} 
               onValueChange={(value) => setFormData({ ...formData, category: value as EventCategory })}
@@ -181,6 +259,144 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ open, onOpenChang
                 <SelectItem value="other">Other</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Additional Categories</Label>
+            <div className="flex gap-2">
+              <Input
+                value={formData.customCategoryInput}
+                onChange={(e) => setFormData({ ...formData, customCategoryInput: e.target.value })}
+                placeholder="Add custom category"
+                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addCustomCategory())}
+              />
+              <Button type="button" onClick={addCustomCategory} variant="outline">
+                Add
+              </Button>
+            </div>
+            {formData.customCategories.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {formData.customCategories.map((cat, index) => (
+                  <div key={index} className="flex items-center gap-1 bg-secondary text-secondary-foreground px-3 py-1 rounded-md text-sm">
+                    {cat}
+                    <button
+                      type="button"
+                      onClick={() => removeCustomCategory(index)}
+                      className="ml-1 hover:text-destructive"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label>Entry Fee</Label>
+            <div className="flex items-center space-x-2 mb-2">
+              <Checkbox
+                id="isFree"
+                checked={formData.entryFee.isFree}
+                onCheckedChange={(checked) =>
+                  setFormData({
+                    ...formData,
+                    entryFee: { ...formData.entryFee, isFree: checked as boolean },
+                  })
+                }
+              />
+              <label htmlFor="isFree" className="text-sm font-medium">
+                Free Entry
+              </label>
+            </div>
+            {!formData.entryFee.isFree && (
+              <Input
+                type="number"
+                value={formData.entryFee.amount || ''}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    entryFee: { ...formData.entryFee, amount: Number(e.target.value) },
+                  })
+                }
+                placeholder="Enter amount"
+              />
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="prizeAmount">Prize Amount (optional)</Label>
+            <Input
+              id="prizeAmount"
+              type="number"
+              value={formData.prizeAmount || ''}
+              onChange={(e) => setFormData({ ...formData, prizeAmount: e.target.value ? Number(e.target.value) : undefined })}
+              placeholder="e.g., 10000"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Contact Information</Label>
+            <div className="grid md:grid-cols-2 gap-4">
+              <Input
+                type="email"
+                value={formData.contactEmail}
+                onChange={(e) => setFormData({ ...formData, contactEmail: e.target.value })}
+                placeholder="Contact Email"
+              />
+              <Input
+                type="tel"
+                value={formData.contactPhone}
+                onChange={(e) => setFormData({ ...formData, contactPhone: e.target.value })}
+                placeholder="Contact Phone"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="externalRegistrationLink">External Registration Link</Label>
+            <Input
+              id="externalRegistrationLink"
+              type="url"
+              value={formData.externalRegistrationLink}
+              onChange={(e) => setFormData({ ...formData, externalRegistrationLink: e.target.value })}
+              placeholder="https://..."
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="howToRegisterLink">How to Register Link</Label>
+            <Input
+              id="howToRegisterLink"
+              type="url"
+              value={formData.howToRegisterLink}
+              onChange={(e) => setFormData({ ...formData, howToRegisterLink: e.target.value })}
+              placeholder="https://..."
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Social Media Links</Label>
+            <div className="space-y-2">
+              <Input
+                type="url"
+                value={formData.instagramLink}
+                onChange={(e) => setFormData({ ...formData, instagramLink: e.target.value })}
+                placeholder="Instagram URL"
+              />
+              <Input
+                type="url"
+                value={formData.facebookLink}
+                onChange={(e) => setFormData({ ...formData, facebookLink: e.target.value })}
+                placeholder="Facebook URL"
+              />
+              <Input
+                type="url"
+                value={formData.youtubeLink}
+                onChange={(e) => setFormData({ ...formData, youtubeLink: e.target.value })}
+                placeholder="YouTube URL"
+              />
+            </div>
           </div>
 
           <div className="space-y-2">

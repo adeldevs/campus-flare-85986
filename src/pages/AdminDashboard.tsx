@@ -11,6 +11,7 @@ import { Plus, Calendar, Users, Shield } from 'lucide-react';
 import EventsManager from '@/components/admin/EventsManager';
 import AdminRequestsManager from '@/components/admin/AdminRequestsManager';
 import CreateEventDialog from '@/components/admin/CreateEventDialog';
+import { toast } from 'sonner';
 
 const AdminDashboard = () => {
   const { userProfile } = useAuth();
@@ -37,14 +38,12 @@ const AdminDashboard = () => {
       
       if (isUltimateAdmin) {
         eventsQuery = query(
-          collection(db, 'events'),
-          orderBy('createdAt', 'desc')
+          collection(db, 'events')
         );
       } else {
         eventsQuery = query(
           collection(db, 'events'),
-          where('createdBy', '==', userProfile?.uid),
-          orderBy('createdAt', 'desc')
+          where('createdBy', '==', userProfile?.uid)
         );
       }
       
@@ -58,8 +57,16 @@ const AdminDashboard = () => {
           date: data.date.toDate(),
           time: data.time,
           location: data.location,
+          mapLink: data.mapLink,
           bannerURL: data.bannerURL,
           category: data.category,
+          categories: data.categories,
+          entryFee: data.entryFee || { isFree: true },
+          prizeAmount: data.prizeAmount,
+          contactInfo: data.contactInfo,
+          externalRegistrationLink: data.externalRegistrationLink,
+          mediaLinks: data.mediaLinks,
+          howToRegisterLink: data.howToRegisterLink,
           createdBy: data.createdBy,
           createdByName: data.createdByName,
           status: data.status,
@@ -69,9 +76,13 @@ const AdminDashboard = () => {
         } as Event;
       });
       
+      // Sort by createdAt descending client-side
+      eventsData.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      
       setEvents(eventsData);
     } catch (error) {
       console.error('Error fetching events:', error);
+      toast.error('Error loading events. Please refresh the page.');
     }
   };
 

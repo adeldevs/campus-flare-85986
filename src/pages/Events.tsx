@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar, MapPin, Clock, Filter } from 'lucide-react';
 import EventCard from '@/components/EventCard';
+import { toast } from 'sonner';
 
 const Events = () => {
   const [events, setEvents] = useState<Event[]>([]);
@@ -33,8 +34,7 @@ const Events = () => {
     try {
       const eventsQuery = query(
         collection(db, 'events'),
-        where('status', '==', 'published'),
-        orderBy('date', 'desc')
+        where('status', '==', 'published')
       );
       
       const snapshot = await getDocs(eventsQuery);
@@ -49,9 +49,13 @@ const Events = () => {
         } as Event;
       });
       
+      // Sort by date in descending order client-side
+      eventsData.sort((a, b) => b.date.getTime() - a.date.getTime());
+      
       setEvents(eventsData);
     } catch (error) {
       console.error('Error fetching events:', error);
+      toast.error('Error loading events. Please refresh the page.');
     } finally {
       setLoading(false);
     }
