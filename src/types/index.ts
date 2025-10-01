@@ -40,7 +40,7 @@ export interface Event {
     isFree: boolean;
     amount?: number;
   };
-  prizeAmount?: number;
+  prizeAmount?: string;
   contactInfo?: {
     email?: string;
     phone?: string;

@@ -45,7 +45,7 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ open, onOpenChang
       isFree: true,
       amount: undefined as number | undefined,
     },
-    prizeAmount: undefined as number | undefined,
+    prizeAmount: '',
     contactEmail: '',
     contactPhone: '',
     externalRegistrationLink: '',
@@ -131,7 +131,7 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ open, onOpenChang
         isFree: true,
         amount: undefined,
       },
-      prizeAmount: undefined,
+      prizeAmount: '',
       contactEmail: '',
       contactPhone: '',
       externalRegistrationLink: '',
@@ -325,14 +325,17 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ open, onOpenChang
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="prizeAmount">Prize Amount (optional)</Label>
-            <Input
+            <Label htmlFor="prizeAmount">Prize Details (optional)</Label>
+            <Textarea
               id="prizeAmount"
-              type="number"
-              value={formData.prizeAmount || ''}
-              onChange={(e) => setFormData({ ...formData, prizeAmount: e.target.value ? Number(e.target.value) : undefined })}
-              placeholder="e.g., 10000"
+              value={formData.prizeAmount}
+              onChange={(e) => setFormData({ ...formData, prizeAmount: e.target.value })}
+              placeholder="e.g., First: ₹10,000; Second: ₹5,000; Third: ₹2,000"
+              rows={3}
             />
+            <p className="text-xs text-muted-foreground">
+              Enter prize details for different positions
+            </p>
           </div>
 
           <div className="space-y-2">
