@@ -38,25 +38,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const userDoc = await getDoc(doc(db, 'users', user.uid));
       
+      // Check if user is a default ultimate admin
+      const isDefaultAdmin = user.email === 'adeldevs87@gmail.com' || 
+                            user.email === 'muhammedshad9895@gmail.com';
+      
       if (userDoc.exists()) {
         const data = userDoc.data();
+        const currentRole = data.role || 'user';
+        
+        // If user is a default admin but doesn't have ultimateAdmin role, update it
+        if (isDefaultAdmin && currentRole !== 'ultimateAdmin') {
+          await setDoc(doc(db, 'users', user.uid), {
+            ...data,
+            role: 'ultimateAdmin',
+            updatedAt: serverTimestamp(),
+          }, { merge: true });
+        }
+        
         setUserProfile({
           uid: user.uid,
           email: user.email!,
           displayName: data.displayName || user.displayName || '',
           photoURL: data.photoURL || user.photoURL || '',
-          role: data.role || 'user',
+          role: isDefaultAdmin ? 'ultimateAdmin' : (data.role || 'user'),
           createdAt: data.createdAt?.toDate() || new Date(),
           updatedAt: data.updatedAt?.toDate() || new Date(),
         });
       } else {
-        // Create new user profile
+        // Create new user profile with ultimateAdmin role if default admin
         const newProfile: Omit<UserProfile, 'createdAt' | 'updatedAt'> = {
           uid: user.uid,
           email: user.email!,
           displayName: user.displayName || '',
           photoURL: user.photoURL || '',
-          role: 'user',
+          role: isDefaultAdmin ? 'ultimateAdmin' : 'user',
         };
         
         await setDoc(doc(db, 'users', user.uid), {
